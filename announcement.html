@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告資訊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0066cc;
+            --primary-green: #00cc99;
+            --bg-gradient: linear-gradient(135deg, rgba(0, 102, 204, 0.8), rgba(0, 204, 153, 0.8));
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Noto Sans TC', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Asymmetric gradient background */
+            background:
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 170, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 102, 255, 0.4) 0%, transparent 40%),
+                linear-gradient(115deg, #e0f7fa 0%, #e3f2fd 100%);
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        /* Ambient background shapes for asymmetry */
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape-1 {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            left: -100px;
+            background: rgba(0, 204, 153, 0.4);
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 500px;
+            height: 500px;
+            bottom: -100px;
+            right: -100px;
+            background: rgba(0, 102, 204, 0.4);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -50px) rotate(10deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(-5deg);
+            }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        h1 {
+            /* GUCCI-like style: Didone font, high contrast, wide spacing */
+            font-family: 'Bodoni Moda', serif;
+            font-size: 4.5rem;
+            color: #003366;
+            margin-bottom: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            text-shadow:
+                2px 2px 0px rgba(255, 255, 255, 0.4),
+                4px 4px 12px rgba(0, 52, 102, 0.2);
+            position: relative;
+            display: inline-block;
+            perspective: 1000px;
+            /* For 3D rotation effects */
+        }
+
+        h1 span {
+            display: inline-block;
+            animation-duration: 5s;
+            animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation-fill-mode: forwards;
+        }
+
+        h1 span:nth-child(1) {
+            animation-name: assemble-1;
+        }
+
+        h1 span:nth-child(2) {
+            animation-name: assemble-2;
+        }
+
+        h1 span:nth-child(3) {
+            animation-name: assemble-3;
+        }
+
+        h1 span:nth-child(4) {
+            animation-name: assemble-4;
+        }
+
+        /* Keyframes for "Chaos to Order" animation - 5 seconds */
+        /* Each character has a unique path */
+
+        @keyframes assemble-1 {
+            0% {
+                transform: translate(-200px, -150px) rotate(-120deg) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(100px, 50px) rotate(45deg) scale(1.2);
+                opacity: 1;
+                filter: blur(2px);
+            }
+
+            40% {
+                transform: translate(-50px, 100px) rotate(-90deg) scale(0.9);
+            }
+
+            60% {
+                transform: translate(20px, -50px) rotate(20deg) scale(1.1);
+                filter: blur(0);
+            }
+
+            80% {
+                transform: translate(-10px, 10px) rotate(-10deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes assemble-2 {
+            0% {
+                transform: translate(150px, -200px) rotate(180deg) scale(0.5);
+                opacity: 0;
+            }
+
+            25% {
+                transform: translate(-100px, -50px) rotate(-60deg) scale(1.1);
+                opacity: 1;
+                filter: blur(2px);
+            }
+
+            45% {
+                transform: translate(80px, 100px) rotate(90deg) scale(0.8);
+            }
+
+            65% {
+                transform: translate(-30px, -30px) rotate(-20deg) scale(1.1);
+                filter: blur(0);
+            }
+
+            85% {
+                transform: translate(10px, -10px) rotate(10deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes assemble-3 {
+            0% {
+                transform: translate(-150px, 200px) rotate(-90deg) scale(0.5);
+                opacity: 0;
+            }
+
+            22% {
+                transform: translate(120px, -80px) rotate(120deg) scale(1.2);
+                opacity: 1;
+                filter: blur(2px);
+            }
+
+            42% {
+                transform: translate(-80px, -60px) rotate(-45deg) scale(0.9);
+            }
+
+            62% {
+                transform: translate(40px, 40px) rotate(30deg) scale(1.1);
+                filter: blur(0);
+            }
+
+            82% {
+                transform: translate(-10px, -10px) rotate(-5deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes assemble-4 {
+            0% {
+                transform: translate(200px, 150px) rotate(90deg) scale(0.5);
+                opacity: 0;
+            }
+
+            28% {
+                transform: translate(-150px, 50px) rotate(-150deg) scale(1.2);
+                opacity: 1;
+                filter: blur(2px);
+            }
+
+            48% {
+                transform: translate(60px, -100px) rotate(60deg) scale(0.8);
+            }
+
+            68% {
+                transform: translate(-20px, 30px) rotate(-30deg) scale(1.1);
+                filter: blur(0);
+            }
+
+            88% {
+                transform: translate(5px, 5px) rotate(5deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Decorative line often found in luxury design */
+        h1::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #003366, transparent);
+            margin: 15px auto 0;
+            border-radius: 2px;
+            opacity: 0;
+            animation: fade-in 1s ease-out 4.5s forwards;
+            /* Appear at the end */
+        }
+
+        @keyframes fade-in {
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .content-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow:
+                0 20px 50px rgba(0, 52, 102, 0.15),
+                0 4px 6px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            z-index: 2;
+            /* Ensure it stays above flying text if they overlap aggressively */
+        }
+
+        < !-- ... inside body ... --><div class="shape shape-1"></div><div class="shape shape-2"></div><div class="container"><h1><span>公</span><span>告</span><span>資</span><span>訊</span></h1><div class="content-box"><div id="announcement-text" class="loading">載入中...</div></div></div>.content-box:hover {
+            transform: translateY(-5px);
+            box-shadow:
+                0 25px 60px rgba(0, 52, 102, 0.2),
+                0 8px 12px rgba(0, 0, 0, 0.08),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+        }
+
+        #announcement-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: #333;
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            /* Preserve line breaks from sheet */
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+                /* Smaller font for mobile */
+                letter-spacing: 0.1em;
+                /* Tighter spacing */
+                margin-bottom: 2rem;
+            }
+
+            .content-box {
+                padding: 1.5rem;
+                min-height: 150px;
+            }
+
+            /* Adjust animation usage for mobile to avoid overflow */
+            /* We can keep the same keyframes but scale the whole H1 or reduce the translation values */
+            /* Simpler approach: Reduce keyframe intensity via a new set of keyframes OR just scale the H1 container down significantly? 
+               actually, let's just make the translations responsive using 'vw' would be hard to refactor all keyframes.
+               Instead, let's redefine the keyframes for mobile inside this media query block would be cleanest but verbose.
+               Alternative: Just make the body overflow work better or use smaller translate values.
+            */
+        }
+
+        /* Mobile-specific animation overrides to prevent horizontal scroll/off-screen elements */
+        @media (max-width: 600px) {
+            h1 span {
+                /* Reducing the translation distance implicitly by scaling the parent doesn't work well for translate pixels. 
+                  So we override the animations for small screens to be less chaotic/wide.
+               */
+                animation-name: assemble-mobile !important;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Unified mobile animation for all chars to be simpler but still move */
+        @keyframes assemble-mobile {
+            0% {
+                transform: translate(0, -100px) scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translate(0, 20px) scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 
+           Wait, user wanted the SPECIFIC 4 animations. 
+           To keep them but fit on mobile, we can use a zoom or scale on the container, 
+           or just accept that they fly off screen briefly (overflow hidden on body handles this).
+           The main issue is the final font size.
+        */
+
+        @media (max-width: 768px) {
+
+            /* Redefine the chaotic animations to be contained within smaller bounds */
+            /* Actually, since we have overflow:hidden on body, flying off screen is fine! 
+                We just need to make sure the FINAL state is readable and fits.
+             */
+            body {
+                padding: 1rem;
+                /* Prevent edge touching */
+            }
+
+            h1 {
+                font-size: 13vw;
+                /* Responsive font size based on width */
+                max-width: 100%;
+                white-space: nowrap;
+                /* Prevent breaking lines if possible */
+                letter-spacing: 0.15em;
+            }
+
+            .container {
+                width: 100%;
+            }
+        }
+
+        padding: 1.5rem;
+        }
+
+        #announcement-text {
+            font-size: 1.25rem;
+        }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+
+    <div class="container">
+        <h1>
+            <span>公</span><span>告</span><span>資</span><span>訊</span>
+        </h1>
+        <div class="content-box">
+            <div id="announcement-text" class="loading">載入中...</div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1xxYVXkRlpwNOCnfaAHXBq8TLgTUKa3ITdC4AZoJuYLk';
+        const SHEET_NAME = '工作表1'; // Google Sheets default tab name
+        const CELL_RANGE = 'A1';
+
+        function fetchAnnouncement() {
+            const textElement = document.getElementById('announcement-text');
+
+            // Define the global callback function that Google API will call
+            window.setSheetData = function (json) {
+                console.log('Data received:', json);
+
+                if (json.status === 'error') {
+                    console.error('Sheet API Error:', json.errors);
+                    textElement.innerHTML = `讀取錯誤。<br><span style="font-size: 0.9rem;">原因: ${json.errors[0].message}</span><br><span style="font-size: 0.8rem;">請確認工作表名稱是否為 '工作表1'</span>`;
+                    textElement.classList.add('error');
+                    textElement.classList.remove('loading');
+                    return;
+                }
+
+                // Parse the cell content
+                // json.table.rows[0].c[0].v contains the value
+                const cellValue = json.table?.rows?.[0]?.c?.[0]?.v;
+
+                if (cellValue) {
+                    textElement.textContent = cellValue;
+                    textElement.classList.remove('loading');
+                } else {
+                    textElement.textContent = "內容為空";
+                    textElement.classList.remove('loading');
+                }
+            };
+
+            // Create a script tag to fetch data (JSONP)
+            // This bypasses CORS restriction which blocks 'fetch' from file://
+            const script = document.createElement('script');
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:setSheetData&sheet=${encodeURIComponent(SHEET_NAME)}&range=${CELL_RANGE}`;
+
+            script.src = url;
+            script.onerror = function () {
+                textElement.innerHTML = `無法連線到 Google Sheet。<br><span style="font-size: 0.9rem; opacity: 0.8;">請確認檔案 -> 共用 -> 發布到網路 (Publish to web) 已開啟。</span>`;
+                textElement.classList.add('error');
+                textElement.classList.remove('loading');
+            };
+
+            document.body.appendChild(script);
+        }
+
+        // Fetch on load
+        fetchAnnouncement();
+    </script>
+</body>
+
+</html>

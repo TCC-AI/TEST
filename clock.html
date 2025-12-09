@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #3b82f6;
+            /* Modern Blue, rarely used but defined */
+            --clock-font: 'JetBrains Mono', monospace;
+            --date-font: 'Inter', sans-serif;
+            --glow-strength: 0px;
+            /* Minimalist: minimal glow, can increase if desired */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--date-font);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .clock-container {
+            text-align: center;
+            padding: 2rem;
+            user-select: none;
+            /* Prevent selection for cleaner feel */
+        }
+
+        .time {
+            font-family: var(--clock-font);
+            font-size: 15vw;
+            /* Responsive font size */
+            font-weight: 500;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 var(--glow-strength) rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 0.5vw;
+        }
+
+        /* Seconds smaller? No, minimalist usually same size or slightly smaller. Let's make seconds slightly thinner/smaller */
+        .seconds {
+            font-size: 0.5em;
+            opacity: 0.7;
+            font-weight: 300;
+        }
+
+        .date {
+            margin-top: 1rem;
+            font-size: 2vw;
+            font-weight: 300;
+            opacity: 0.6;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .time {
+                font-size: 20vw;
+                flex-direction: row;
+                /* Keep row for 00:00:00 visual */
+                align-items: baseline;
+            }
+
+            .seconds {
+                font-size: 0.4em;
+            }
+
+            .date {
+                font-size: 4vw;
+                letter-spacing: 0.1em;
+            }
+        }
+
+        /* Optional: Very subtle breathing animation */
+        @keyframes breathe {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.95;
+            }
+        }
+
+        .time-wrapper {
+            animation: breathe 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="clock-container">
+        <div class="time-wrapper">
+            <div class="time" id="clock">
+                <span id="hours">00</span>:<span id="minutes">00</span><span class="seconds" id="seconds">00</span>
+            </div>
+        </div>
+        <div class="date" id="date">Loading...</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            // Using textContent is faster and safer
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+
+            // Date Format: 2023.10.27 Tuesday
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dayName = days[now.getDay()];
+
+            document.getElementById('date').textContent = `${year}.${month}.${day} ${dayName}`;
+        }
+
+        // Run immediately
+        updateClock();
+        // Update every second
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+
+</html>

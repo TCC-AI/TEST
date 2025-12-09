@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #000428, #004e92);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3rem 5rem;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .clock-container:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .time {
+            font-size: 8rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            line-height: 1;
+        }
+
+        .date {
+            margin-top: 1rem;
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+        }
+
+        /* Glow effect */
+        .glow {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(64, 169, 255, 0.8);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+            top: -50px;
+            left: -50px;
+        }
+
+        .glow-2 {
+            top: auto;
+            bottom: -50px;
+            left: auto;
+            right: -50px;
+            background: rgba(0, 78, 146, 0.8);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="clock-container">
+        <div class="glow"></div>
+        <div class="glow glow-2"></div>
+        <div class="time" id="time">00:00:00</div>
+        <div class="date" id="date">Loading...</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            // Time
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}:${seconds}`;
+
+            // Date
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            // Using zh-TW for Traditional Chinese date format
+            document.getElementById('date').textContent = now.toLocaleDateString('zh-TW', options);
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+    </script>
+
+</body>
+
+</html>
