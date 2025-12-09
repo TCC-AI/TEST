@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Digital Human</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="avatar-wrapper">
+            <img src="avatar.jpg" alt="Digital Human" id="avatar">
+            <div class="pulse-ring"></div>
+        </div>
+
+        <div class="status-box">
+            <p id="status-text">點擊麥克風開始對話...</p>
+        </div>
+
+        <button id="mic-btn" onclick="toggleListening()">
+            🎤 開始說話
+        </button>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx05oQGbizpxFfH1PPMMiYtpC-jAncwdOO_yZyk2eGIeNdZtP-9__6w9U-t5hlOQQI51g/exec";
+
+        const avatar = document.getElementById('avatar');
+        const statusText = document.getElementById('status-text');
+        const micBtn = document.getElementById('mic-btn');
+        let isListening = false;
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("您的瀏覽器不支援語音辨識，請使用 Chrome 或 Edge。");
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-TW';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            statusText.innerText = "正在聽您說話...";
+            micBtn.innerText = "🛑 停止";
+            micBtn.classList.add("listening");
+            avatar.classList.add("listening-mode");
+        };
+
+        recognition.onend = () => {
+            if (isListening) { // If it stopped naturally but we didn't get result yet or just finished
+                // We rely on 'result' event to trigger next step. 
+                // If we forcefully stopped, isListening would be false.
+            }
+            // Reset UI if not processing
+            if (statusText.innerText === "正在聽您說話...") {
+                resetUI();
+            }
+        };
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[0][0].transcript;
+            statusText.innerText = `您說: "${transcript}"`;
+            isListening = false;
+            recognition.stop();
+
+            // Send to Backend
+            await sendToAI(transcript);
+        };
+
+        recognition.onerror = (event) => {
+            console.error(event.error);
+            statusText.innerText = "發生錯誤，請重試。";
+            resetUI();
+        };
+
+        function toggleListening() {
+            if (isListening) {
+                recognition.stop();
+                resetUI();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function resetUI() {
+            isListening = false;
+            micBtn.innerText = "🎤 開始說話";
+            micBtn.classList.remove("listening");
+            avatar.classList.remove("listening-mode");
+        }
+
+        async function sendToAI(message) {
+            statusText.innerText = "思考中...";
+            avatar.classList.add("thinking-mode");
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ message: message }) // No-mode CORS or handled by GAS
+                });
+                const data = await response.json();
+
+                if (data.reply) {
+                    statusText.innerText = `AI: "${data.reply}"`;
+                    speak(data.reply);
+                } else if (data.error) {
+                    throw new Error("Backend Error: " + data.error);
+                } else {
+                    throw new Error("No reply key in response: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                console.error(e);
+                statusText.innerText = "連線失敗: " + e.message; // Show exact error
+            } finally {
+                avatar.classList.remove("thinking-mode");
+            }
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "zh-TW";
+
+            // Try to select a better voice if available (e.g. Google 國語)
+            const voices = window.speechSynthesis.getVoices();
+            console.log(voices); // For debugging
+            // Simple heuristic to find a female Chinese voice
+            const zhVoice = voices.find(v => v.lang.includes('zh') && (v.name.includes('Google') || v.name.includes('Female')));
+            if (zhVoice) utterance.voice = zhVoice;
+
+            utterance.onstart = () => {
+                avatar.classList.add("speaking-mode");
+            };
+
+            utterance.onend = () => {
+                avatar.classList.remove("speaking-mode");
+                resetUI();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+
+</html>
