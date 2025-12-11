@@ -20,70 +20,102 @@
             <p id="status-text">點擊麥克風開始對話...</p>
         </div>
 
+        <!-- Voice Mode UI -->
         <button id="mic-btn" onclick="toggleListening()">
             🎤 開始說話
         </button>
+
+        <!-- Text Mode UI (Hidden by default) -->
+        <div id="text-input-area" class="hidden">
+            <input type="text" id="user-input" placeholder="您的瀏覽器不支援語音，請輸入文字..." />
+            <button id="send-btn" onclick="handleTextSubmit()">發送</button>
+        </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyeVOfZ6B1LdOWQb2bibUubSmo-mrX8GBcKnxwHz2yytLAN5vCjQf6OD95PniC3FD9_FA/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx05oQGbizpxFfH1PPMMiYtpC-jAncwdOO_yZyk2eGIeNdZtP-9__6w9U-t5hlOQQI51g/exec";
 
         const avatar = document.getElementById('avatar');
         const statusText = document.getElementById('status-text');
         const micBtn = document.getElementById('mic-btn');
+        const textInputArea = document.getElementById('text-input-area');
+        const userInput = document.getElementById('user-input');
+
         let isListening = false;
+        let recognition = null;
 
-        // Speech Recognition Setup
+        // Check Browser Support
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("您的瀏覽器不支援語音辨識，請使用 Chrome 或 Edge。");
+
+        if (SpeechRecognition) {
+            // Support Voice
+            setupVoiceRecognition(SpeechRecognition);
+        } else {
+            // No Voice Support -> Switch to Text Mode
+            switchToTextMode("您的瀏覽器不支援語音輸入，已切換為文字模式。");
         }
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'zh-TW';
-        recognition.interimResults = false;
 
-        recognition.onstart = () => {
-            isListening = true;
-            statusText.innerText = "正在聽您說話...";
-            micBtn.innerText = "🛑 停止";
-            micBtn.classList.add("listening");
-            avatar.classList.add("listening-mode");
-        };
+        function setupVoiceRecognition(SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'zh-TW';
+            recognition.interimResults = false;
 
-        recognition.onend = () => {
-            if (isListening) { // If it stopped naturally but we didn't get result yet or just finished
-                // We rely on 'result' event to trigger next step. 
-                // If we forcefully stopped, isListening would be false.
-            }
-            // Reset UI if not processing
-            if (statusText.innerText === "正在聽您說話...") {
-                resetUI();
-            }
-        };
+            recognition.onstart = () => {
+                isListening = true;
+                statusText.innerText = "正在聽您說話...";
+                micBtn.innerText = "🛑 停止";
+                micBtn.classList.add("listening");
+                avatar.classList.add("listening-mode");
+            };
 
-        recognition.onresult = async (event) => {
-            const transcript = event.results[0][0].transcript;
-            statusText.innerText = `您說: "${transcript}"`;
-            isListening = false;
-            recognition.stop();
+            recognition.onend = () => {
+                if (statusText.innerText === "正在聽您說話...") {
+                    resetUI();
+                }
+            };
 
-            // Send to Backend
-            await sendToAI(transcript);
-        };
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                statusText.innerText = `您說: "${transcript}"`;
+                isListening = false;
+                recognition.stop();
+                await sendToAI(transcript);
+            };
 
-        recognition.onerror = (event) => {
-            console.error(event.error);
-            statusText.innerText = "發生錯誤，請重試。";
-            resetUI();
-        };
+            recognition.onerror = (event) => {
+                console.error(event.error);
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    switchToTextMode("無法存取麥克風，已切換為文字模式。");
+                } else {
+                    statusText.innerText = "語音辨識錯誤，請重試或檢查麥克風。";
+                    resetUI();
+                }
+            };
+        }
+
+        function switchToTextMode(msg) {
+            statusText.innerText = msg;
+            micBtn.style.display = 'none'; // Hide Mic
+            textInputArea.classList.remove('hidden'); // Show Text Input
+            textInputArea.style.display = 'flex';
+        }
 
         function toggleListening() {
+            if (!recognition) return;
             if (isListening) {
                 recognition.stop();
                 resetUI();
             } else {
                 recognition.start();
             }
+        }
+
+        async function handleTextSubmit() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            userInput.value = '';
+            statusText.innerText = `您輸入: "${text}"`;
+            await sendToAI(text);
         }
 
         function resetUI() {
@@ -100,7 +132,7 @@
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ message: message }) // No-mode CORS or handled by GAS
+                    body: JSON.stringify({ message: message })
                 });
                 const data = await response.json();
 
@@ -114,20 +146,21 @@
                 }
             } catch (e) {
                 console.error(e);
-                statusText.innerText = "連線失敗: " + e.message; // Show exact error
+                statusText.innerText = "連線失敗: " + e.message;
             } finally {
                 avatar.classList.remove("thinking-mode");
             }
         }
 
         function speak(text) {
+            // Mobile browsers often block audio unless triggered by user interaction.
+            // Since this comes from an async fetch, it might be blocked on some iOS devices.
+            // But usually, if the user initiated the flow (click send/mic), it works.
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = "zh-TW";
 
-            // Try to select a better voice if available (e.g. Google 國語)
             const voices = window.speechSynthesis.getVoices();
-            console.log(voices); // For debugging
-            // Simple heuristic to find a female Chinese voice
+            console.log(voices);
             const zhVoice = voices.find(v => v.lang.includes('zh') && (v.name.includes('Google') || v.name.includes('Female')));
             if (zhVoice) utterance.voice = zhVoice;
 
