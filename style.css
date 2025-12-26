@@ -1,106 +1,199 @@
+/* Global Styles */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: white;
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    margin: 0;
 }
 
 .container {
     text-align: center;
-    max-width: 600px;
     width: 100%;
+    max-width: 500px;
+    padding: 2rem;
 }
 
+/* Avatar Wrapper & Pulse Effect */
 .avatar-wrapper {
     position: relative;
-    width: 250px;
-    height: 250px;
-    margin: 0 auto 30px;
-    border-radius: 50%;
-    /* Overflow hidden to keep image circle */
-    overflow: hidden; 
-    border: 5px solid #333;
-    transition: all 0.3s ease;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 2rem;
 }
 
 #avatar {
     width: 100%;
     height: 100%;
+    border-radius: 50%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2;
+    border: 3px solid #333;
+    transition: border-color 0.3s ease;
 }
 
-/* Animations based on state */
-.avatar-wrapper:has(.listening-mode) {
-    border-color: #4CAF50;
-    box-shadow: 0 0 20px #4CAF50;
+.pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    z-index: 1;
+    opacity: 0;
 }
 
-.avatar-wrapper:has(.thinking-mode) {
-    border-color: #2196F3;
-    box-shadow: 0 0 20px #2196F3;
-    animation: thinking-pulse 1.5s infinite;
-}
-
-.speaking-mode {
-    animation: speaking-bounce 0.5s infinite alternate;
-}
-
-@keyframes thinking-pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.02); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes speaking-bounce {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.05); }
-}
-
+/* Status Text */
 .status-box {
-    margin-bottom: 30px;
-    min-height: 24px;
+    margin-bottom: 2rem;
+    min-height: 1.5em;
 }
 
 #status-text {
-    font-size: 1.2rem;
-    color: #ccc;
+    font-size: 1.1rem;
+    color: #a0a0a0;
 }
 
-#mic-btn {
+/* Buttons */
+button {
     background-color: #333;
-    color: white;
-    border: none;
-    padding: 15px 30px;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 12px 24px;
+    border-radius: 30px;
     font-size: 1rem;
-    border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    gap: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    gap: 8px;
 }
 
-#mic-btn:hover {
+button:hover {
     background-color: #444;
     transform: translateY(-2px);
 }
 
-#mic-btn.listening {
-    background-color: #d32f2f;
-    animation: pulse-red 1s infinite;
+button:active {
+    transform: translateY(0);
 }
 
-@keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+/* Input Area */
+#text-input-area {
+    margin-top: 1rem;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+input[type="text"] {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 20px;
+    outline: none;
+    width: 200px;
+}
+
+/* --- State Animations --- */
+
+/* Listening Mode (Microphone is active) */
+.listening {
+    background-color: #ef4444 !important;
+    /* Red for Stop */
+    border-color: #ef4444 !important;
+}
+
+.listening-mode+.pulse-ring,
+.listening-mode~.pulse-ring {
+    /* This assumes .pulse-ring is sibling or handled via JS toggling classes on wrapper. 
+       Let's stick to toggling classes on #avatar or wrapper */
+}
+
+/* Using classes on .avatar-wrapper for clearer state management */
+.state-listening .pulse-ring {
+    border: 3px solid #3b82f6;
+    /* Blue ring */
+    animation: listen-pulse 1.5s infinite;
+    opacity: 1;
+}
+
+.state-listening #avatar {
+    border-color: #3b82f6;
+}
+
+/* Thinking Mode (Waiting for API) */
+.state-thinking .pulse-ring {
+    border: 3px solid #f59e0b;
+    /* Amber/Orange */
+    animation: think-spin 2s linear infinite;
+    border-top-color: transparent;
+    opacity: 1;
+}
+
+.state-thinking #avatar {
+    border-color: #f59e0b;
+}
+
+/* Speaking Mode (Audio playing) */
+.state-speaking .pulse-ring {
+    border: 3px solid #10b981;
+    /* Green */
+    animation: speak-wave 1s infinite;
+    opacity: 1;
+}
+
+.state-speaking #avatar {
+    border-color: #10b981;
+}
+
+
+/* Keyframes */
+@keyframes listen-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes think-spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes speak-wave {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        border-width: 3px;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        border-width: 8px;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        border-width: 3px;
+    }
 }
