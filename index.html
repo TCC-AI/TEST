@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Digital Human</title>
-    <link rel="stylesheet" href="style.css">
+    <title>AI Digital Human (OpenAI Voice)</title>
+    <link rel="stylesheet" href="digital_human.css">
 </head>
 
 <body>
 
     <div class="container">
         <div class="avatar-wrapper">
-            <img src="avatar.jpg" alt="Digital Human" id="avatar">
+            <!-- 使用 DiceBear 作為預設頭像，您可以替換成自己的 avatar.jpg -->
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Digital Human" id="avatar">
             <div class="pulse-ring"></div>
         </div>
 
@@ -33,9 +34,10 @@
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyeVOfZ6B1LdOWQb2bibUubSmo-mrX8GBcKnxwHz2yytLAN5vCjQf6OD95PniC3FD9_FA/exec";
+        // *** 重要：請將此網址替換為您部署的 Google Apps Script 網址 ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbycRHXi7PqLpQ6V6cZmeSigwjdG8fHQ8OK8ECBW2h1EV1QwEZYuaWGigKfN0DGlPGTL6A/exec";
 
-        const avatar = document.getElementById('avatar');
+        const avatarWrapper = document.querySelector('.avatar-wrapper');
         const statusText = document.getElementById('status-text');
         const micBtn = document.getElementById('mic-btn');
         const textInputArea = document.getElementById('text-input-area');
@@ -43,15 +45,14 @@
 
         let isListening = false;
         let recognition = null;
+        let currentAudio = null;
 
         // Check Browser Support
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (SpeechRecognition) {
-            // Support Voice
             setupVoiceRecognition(SpeechRecognition);
         } else {
-            // No Voice Support -> Switch to Text Mode
             switchToTextMode("您的瀏覽器不支援語音輸入，已切換為文字模式。");
         }
 
@@ -65,7 +66,7 @@
                 statusText.innerText = "正在聽您說話...";
                 micBtn.innerText = "🛑 停止";
                 micBtn.classList.add("listening");
-                avatar.classList.add("listening-mode");
+                updateState('listening');
             };
 
             recognition.onend = () => {
@@ -87,7 +88,7 @@
                 if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                     switchToTextMode("無法存取麥克風，已切換為文字模式。");
                 } else {
-                    statusText.innerText = "語音辨識錯誤，請重試或檢查麥克風。";
+                    statusText.innerText = "語音辨識錯誤，請重試。";
                     resetUI();
                 }
             };
@@ -95,13 +96,20 @@
 
         function switchToTextMode(msg) {
             statusText.innerText = msg;
-            micBtn.style.display = 'none'; // Hide Mic
-            textInputArea.classList.remove('hidden'); // Show Text Input
-            textInputArea.style.display = 'flex';
+            micBtn.style.display = 'none';
+            textInputArea.classList.remove('hidden');
         }
 
         function toggleListening() {
             if (!recognition) return;
+            // 如果正在播放音訊，點擊按鈕應該停止播放
+            if (currentAudio && !currentAudio.paused) {
+                currentAudio.pause();
+                currentAudio = null;
+                resetUI();
+                return;
+            }
+
             if (isListening) {
                 recognition.stop();
                 resetUI();
@@ -122,12 +130,17 @@
             isListening = false;
             micBtn.innerText = "🎤 開始說話";
             micBtn.classList.remove("listening");
-            avatar.classList.remove("listening-mode");
+            avatarWrapper.className = 'avatar-wrapper'; // Remove all state classes
+        }
+
+        function updateState(state) {
+            avatarWrapper.className = 'avatar-wrapper'; // Reset
+            if (state) avatarWrapper.classList.add('state-' + state);
         }
 
         async function sendToAI(message) {
             statusText.innerText = "思考中...";
-            avatar.classList.add("thinking-mode");
+            updateState('thinking');
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -136,43 +149,58 @@
                 });
                 const data = await response.json();
 
+                if (data.error) {
+                    throw new Error("Backend Error: " + data.error);
+                }
+
                 if (data.reply) {
                     statusText.innerText = `AI: "${data.reply}"`;
-                    speak(data.reply);
-                } else if (data.error) {
-                    throw new Error("Backend Error: " + data.error);
-                } else {
-                    throw new Error("No reply key in response: " + JSON.stringify(data));
+
+                    // 檢查是否有音訊資料
+                    if (data.audioData) {
+                        playAudio(data.audioData);
+                    } else {
+                        // Fallback to browser TTS if no audioData
+                        console.warn("No audioData received, using fallback.");
+                        speakFallback(data.reply);
+                    }
                 }
             } catch (e) {
                 console.error(e);
                 statusText.innerText = "連線失敗: " + e.message;
-            } finally {
-                avatar.classList.remove("thinking-mode");
+                resetUI();
             }
         }
 
-        function speak(text) {
-            // Mobile browsers often block audio unless triggered by user interaction.
-            // Since this comes from an async fetch, it might be blocked on some iOS devices.
-            // But usually, if the user initiated the flow (click send/mic), it works.
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "zh-TW";
+        function playAudio(base64Data) {
+            updateState('speaking');
+            micBtn.innerText = "🛑 停止播放";
 
-            const voices = window.speechSynthesis.getVoices();
-            console.log(voices);
-            const zhVoice = voices.find(v => v.lang.includes('zh') && (v.name.includes('Google') || v.name.includes('Female')));
-            if (zhVoice) utterance.voice = zhVoice;
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
 
-            utterance.onstart = () => {
-                avatar.classList.add("speaking-mode");
-            };
+            currentAudio = new Audio("data:audio/mp3;base64," + base64Data);
 
-            utterance.onend = () => {
-                avatar.classList.remove("speaking-mode");
+            currentAudio.onended = () => {
+                currentAudio = null;
                 resetUI();
             };
 
+            currentAudio.play().catch(e => {
+                console.error("Audio play failed:", e);
+                statusText.innerText = "自動播放被阻擋，請點擊畫面重試。";
+                resetUI();
+            });
+        }
+
+        function speakFallback(text) {
+            // 原有的瀏覽器語音合成作為備案
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "zh-TW";
+            utterance.onstart = () => updateState('speaking');
+            utterance.onend = () => resetUI();
             window.speechSynthesis.speak(utterance);
         }
     </script>
